@@ -1,6 +1,6 @@
 {
   "name": "variscite_api",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "",
   "scripts": {
     "start": "NODE_PATH=./build node build/index.js",
@@ -11,7 +11,6 @@
   "author": "u/vlad",
   "license": "MIT",
   "dependencies": {
-    "ajv": "^8.6.3",
     "fastify": "^3.21.3",
     "fastify-jwt": "^3.1.0",
     "mongodb": "^4.1.2",

@@ -25,7 +25,12 @@ export function generateErrorMessage(
       errorText: err.message,
       url: req.url,
     });
-  }  else if (err instanceof NotFoundError) {
+  } else if (err instanceof NoPermissionsError) {
+    res.status(403).send({
+      errorText: err.message,
+      url: req.url,
+    });
+  } else if (err instanceof NotFoundError) {
     res.status(404).send({
       errorText: err.message,
       url: req.url,
@@ -38,6 +43,8 @@ export function generateErrorMessage(
   }
 }
 
-export class AuthError extends Error {}
+export class AuthError extends Error { }
+
+export class NoPermissionsError extends Error {}
 
 export class NotFoundError extends Error {}

@@ -3,7 +3,7 @@ export interface IGroupModel {
   name: string;
   passcode?: string;
   inviteCode: string;
-  users: IUserModel[];
+  users?: IUserModel[];
 }
 
 export interface IUserModel {

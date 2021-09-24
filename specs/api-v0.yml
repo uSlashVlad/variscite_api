@@ -25,10 +25,6 @@ components:
         inviteCode:
           type: string
           example: O92UAMEsSXsSs1X
-        users:
-          type: array
-          items:
-            $ref: '#/components/schemas/UserInfo'
       required:
         - group
         - name
@@ -179,7 +175,7 @@ paths:
   /groups:
     post:
       security: []
-      summary: Creates new group
+      summary: Create new group
       requestBody:
         content:
           application/json:
@@ -311,7 +307,7 @@ paths:
       summary: Delete current group
       responses:
         '200':
-          description: If auth is successfull, it returns group data
+          description: If auth is successfull, it returns empty object
           content:
             application/json:
               schema:
@@ -342,6 +338,148 @@ paths:
                     default: /groups/my
         '404':
           description: Token refers on group that doesn't already exists
+          content:
+            application/json:
+              schema:
+                properties:
+                  errorText:
+                    type: string
+                    default: No such group found or user was kicked
+                  url:
+                    type: string
+                    default: /groups/my
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InternalServerError'
+  /groups/my/users:
+    get:
+      summary: Get current group' users list
+      responses:
+        '200':
+          description: Returns list of all users in group
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserInfo'
+        '401':
+          description: If no token specified or token is incorrect
+          content:
+            application/json:
+              schema:
+                properties:
+                  errorText:
+                    type: string
+                    default: Invalid token
+                  url:
+                    type: string
+                    default: /groups/my
+        '404':
+          description: Token refers on group that doesn't already exists
+          content:
+            application/json:
+              schema:
+                properties:
+                  errorText:
+                    type: string
+                    default: No such group found or user was kicked
+                  url:
+                    type: string
+                    default: /groups/my
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InternalServerError'
+  /groups/my/users/{userId}:
+    parameters:
+      - name: userId
+        in: path
+        description: User' UUID that creates during user login
+        required: true
+        schema:
+          type: string
+          format: uuid
+          example: 9375ecb7-e61d-43f0-8775-960fb29250a5
+    get:
+      summary: Get user info
+      responses:
+        '200':
+          description: If auth is successfull, it returns user data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GroupInfo'
+        '401':
+          description: If no token specified or token is incorrect
+          content:
+            application/json:
+              schema:
+                properties:
+                  errorText:
+                    type: string
+                    default: Invalid token
+                  url:
+                    type: string
+                    default: /groups/my
+        '404':
+          description: Token refers on group that doesn't already exists or here is no such user
+          content:
+            application/json:
+              schema:
+                properties:
+                  errorText:
+                    type: string
+                    default: No such group found or user was kicked
+                  url:
+                    type: string
+                    default: /groups/my
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InternalServerError'
+    delete:
+      summary: Kick user from group
+      responses:
+        '200':
+          description: If auth is successfull, it returns empty object
+          content:
+            application/json:
+              schema:
+                default: {}
+        '401':
+          description: If no token specified or token is incorrect
+          content:
+            application/json:
+              schema:
+                properties:
+                  errorText:
+                    type: string
+                    default: Invalid token
+                  url:
+                    type: string
+                    default: /groups/my
+        '403':
+          description: Token is ok, but user is not group admin
+          content:
+            application/json:
+              schema:
+                properties:
+                  errorText:
+                    type: string
+                    default: Insufficient permissions
+                  url:
+                    type: string
+                    default: /groups/my
+        '404':
+          description: Token refers on group that doesn't already exists or here is no such user
           content:
             application/json:
               schema:
@@ -413,7 +551,7 @@ paths:
   /status:
     get:
       security: []
-      summary: Checks server status and returns it
+      summary: Check server status
       responses:
         '200':
           description: Just "OK"

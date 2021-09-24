@@ -4,8 +4,12 @@ import { IRoute } from '../../data/schemas/route';
 import { IGroupInput, IGroupModel, IUserJWT } from '../../data/schemas/group';
 import { Database, GroupsCollection } from '../../data/db';
 import { genUUID, genCode } from '../../utils/random';
-import { sha256 } from '../../utils/security';
-import { AuthError, NotFoundError } from '../../utils/errors';
+import { checkUserInGroup, sha256 } from '../../utils/security';
+import {
+  AuthError,
+  NoPermissionsError,
+  NotFoundError,
+} from '../../utils/errors';
 
 export class GroupsAPI implements IRoute {
   private groupsCollection: GroupsCollection;
@@ -26,6 +30,9 @@ export class GroupsAPI implements IRoute {
     });
     instance.delete('/my', opts, async (req, res) => {
       await this.deleteCurrentGroup(req, res);
+    });
+    instance.get('/my/users', opts, async (req, res) => {
+      await this.getCurrentGroupUsers(req, res);
     });
 
     next();
@@ -83,35 +90,63 @@ export class GroupsAPI implements IRoute {
 
   /// GET /groups/my
   private async getCurrentGroupInfo(req: FastifyRequest, res: FastifyReply) {
-    const decoded = await req.jwtVerify();
-    if (decoded) {
-      const jwt = decoded as IUserJWT;
-      const group = await this.groupsCollection.getGroupById(jwt.g);
-      if (group) {
-        delete group._id;
-        delete group.passcode;
-        res.send(group as IGroupModel);
-      } else {
-        throw new NotFoundError('No such group found or user was kicked');
-      }
-    } else {
-      throw new AuthError('Invalid token');
-    }
+    await req
+      .jwtVerify()
+      .catch((reason) => {
+        throw new AuthError('Invalid token: ' + reason);
+      })
+      .then(async (decoded) => {
+        const jwt = decoded as IUserJWT;
+        const group = await this.groupsCollection.getGroupById(jwt.g);
+        if (group && checkUserInGroup(group.users || [], jwt.u)) {
+          delete group._id;
+          delete group.passcode;
+          delete group.users;
+          res.send(group as IGroupModel);
+        } else {
+          throw new NotFoundError('No such group found or user was kicked');
+        }
+      });
+  }
+
+  /// GET /groups/my/users
+  private async getCurrentGroupUsers(req: FastifyRequest, res: FastifyReply) {
+    await req
+      .jwtVerify()
+      .catch((reason) => {
+        throw new AuthError('Invalid token: ' + reason);
+      })
+      .then(async (decoded) => {
+        const jwt = decoded as IUserJWT;
+        const group = await this.groupsCollection.getGroupById(jwt.g);
+        if (group && checkUserInGroup(group.users || [], jwt.u)) {
+          res.send(group.users);
+        } else {
+          throw new NotFoundError('No such group found or user was kicked');
+        }
+      });
   }
 
   /// DELETE /groups/my
   private async deleteCurrentGroup(req: FastifyRequest, res: FastifyReply) {
-    const decoded = await req.jwtVerify();
-    if (decoded) {
-      const jwt = decoded as IUserJWT;
-      if (jwt.a) {
-        await this.groupsCollection.deleteGroupById(jwt.g);
-        res.send({});
-      } else {
-        throw new AuthError('Insufficient permissions');
-      }
-    } else {
-      throw new AuthError('Invalid token');
-    }
+    await req
+      .jwtVerify()
+      .catch((reason) => {
+        throw new AuthError('Invalid token: ' + reason);
+      })
+      .then(async (decoded) => {
+        const jwt = decoded as IUserJWT;
+        const group = await this.groupsCollection.getGroupById(jwt.g);
+        if (group && checkUserInGroup(group.users || [], jwt.u)) {
+          if (jwt.a) {
+            await this.groupsCollection.deleteGroupById(jwt.g);
+            res.send({});
+          } else {
+            throw new NoPermissionsError('Insufficient permissions');
+          }
+        } else {
+          throw new NotFoundError('No such group found or user was kicked');
+        }
+      });
   }
 }

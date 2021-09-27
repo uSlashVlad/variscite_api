@@ -1,4 +1,4 @@
-import { axios, setBaseUrl, axiosStatusError } from '../utils';
+import { axios, axiosStatusError } from '../utils';
 
 describe('/groups', () => {
   describe('invalid scenario', () => {

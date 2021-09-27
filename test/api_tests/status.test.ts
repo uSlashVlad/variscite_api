@@ -1,6 +1,4 @@
-import { axios, setBaseUrl } from '../utils';
-
-setBaseUrl();
+import { axios } from '../utils';
 
 describe('/status', () => {
   test('status is OK', async () => {

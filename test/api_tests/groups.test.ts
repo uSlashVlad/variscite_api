@@ -1,7 +1,5 @@
 import { axios, setBaseUrl, axiosStatusError } from '../utils';
 
-setBaseUrl();
-
 describe('/groups', () => {
   describe('invalid scenario', () => {
     describe('creation', () => {
@@ -102,7 +100,7 @@ describe('/groups', () => {
       test('invalid input (invalid passcode)', async () => {
         expect.assertions(1);
         try {
-          await axios.post('/groups/UYMe78B653NTKZg', {
+          await axios.post('/groups/Rs12EpqhErbcgc9', {
             name: 'TEST group',
             passcode: '000',
           });
@@ -125,7 +123,7 @@ describe('/groups', () => {
     const tokenWithoutData =
       'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE2MzI0Nzk1MTJ9.hPJ7eflTIxE0NwDi4I6v_TO3p0TKlOIbj1XZDp9a_U7GOhBiBmUzcoWTKtaXaOvMEqLg1ba52wcJogyCFNzpM_tSY7jn7fa5zTz2uJ0HLf1ePxjUmOeHYPdfG5HQk_RJorl3VthP3blrOUf3i3eSWFo0c8JnqD2VdhX9k3mVhH033qqS57cvTCMYdX53Wce-rbyduzYtFNlqbPQTYmqdRDrkNvaL17SFs7G7_FcBUgKkrdgsadIzXz5xwqX0LyDcu097rWat41YOROl4NkjP8G_5by7iny1UrCJUO9xXHjSDZXD6zru_-Luc9SEv9_DshpYMgLYeLNMjFS-aaWMxdA';
     const userToken =
-      'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJnIjoiZmE5MWJiMmItYjYyMy00Y2Y2LWI4ODYtMTYxNTA5ODNhYzNlIiwidSI6IjRjZjlkNmYxLWQyZTEtNGFlNS1iNmI4LTgwNzI2OGNjZmY0MyIsImEiOmZhbHNlLCJpYXQiOjE2MzI0Nzk1NTB9.wFYNJPne-4dFDeGohh46-k1AEHQ92NcHBRnpBNHUq9twmtpYXJyJ-dt5FZISJseHnZl7XSlVAw1c24_1CzRjBg4sR-_itZSJAAXkXI7acAtHl9B3mK-Fz-vlgDmcKlzfT53rhMxUKWinoygKmudM_UkVeApp3Kjyf4vX0iY14EuOs9rQMYQvIiFx3VR4IfjmLhrjUg3fjU0Yt7T84YUDoleRgNCymUnuGxjNqgdpgL1rokFmdRam3bKsGVQCAO-nbSRJKhk_B1wGTgnEYvGjMCz_ptF5zzNf3mAUgcRKfoXOKVlBWEO9UF7ag3l1i4PexwbbdHBYhjEWhWM5XTEtew';
+      'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJnIjoiODU3MmU5MWQtM2U0Yy00NmYxLWJkNDEtZWUxMTUxMWI1ZGNlIiwidSI6IjdhYjExNTRhLWJlN2ItNDcwOS1hNjE0LTYxZWQ3NGQ0Yjc0ZSIsImEiOmZhbHNlLCJpYXQiOjE2MzI3NjEwOTh9.YsKjLGHEUwC54SAixJKiVVhMagyhTaI0hiihjAQL7FIbLAc0GGZX4DrEe7qcnqFXd9ckpyYURDxfs5Evmd0dsBCjKj31nbQCOGxXPJfgLWCzGD9aEAMV38a79np19yRWpz9MbGo5Y1Ub8XqmNSc3WXU3gtHMv5DLPmxQqHH_hsPUdk9d8IJuPBuTVTzfXQ5X1rJh6YEPcnaTGNaJ2pSOBjktnNCS6Jk_dYmABtBTzBwj4hKrdCTxQLjyYBo3k1u6TyyU4i5jE6X-iawfD0DTgI-GPMW_lcDlN5UMxNN3-y6KjOggqrSPec9-eqN0wYW2V84O8iprph4ET3ncj6Djvw';
 
     describe('get info', () => {
       test('no token', async () => {
@@ -411,6 +409,257 @@ describe('/groups', () => {
         expect.assertions(1);
         try {
           await axios.delete('/groups/my', {
+            headers: {
+              Authorization: 'Bearer ' + userToken,
+            },
+          });
+        } catch (err) {
+          expect((err as Error).message).toBe(axiosStatusError(403));
+        }
+      });
+    });
+
+    const requiredUserId = '7ab1154a-be7b-4709-a614-61ed74d4b74e';
+
+    describe('get user info', () => {
+      test('no token', async () => {
+        expect.assertions(1);
+        try {
+          await axios.get('/groups/my/users/' + requiredUserId);
+        } catch (err) {
+          expect((err as Error).message).toBe(axiosStatusError(401));
+        }
+      });
+
+      test('invalid token sign', async () => {
+        expect.assertions(1);
+        try {
+          await axios.get('/groups/my/users/' + requiredUserId, {
+            headers: {
+              Authorization: 'Bearer ' + adminTokenWithInvalidSign,
+            },
+          });
+        } catch (err) {
+          expect((err as Error).message).toBe(axiosStatusError(401));
+        }
+      });
+
+      test('invalid token header', async () => {
+        expect.assertions(1);
+        try {
+          await axios.get('/groups/my/users/' + requiredUserId, {
+            headers: {
+              Authorization: 'Bearer ' + adminTokenWithInvalidHeader,
+            },
+          });
+        } catch (err) {
+          expect((err as Error).message).toBe(axiosStatusError(401));
+        }
+      });
+
+      test('invalid token payload', async () => {
+        expect.assertions(1);
+        try {
+          await axios.get('/groups/my/users/' + requiredUserId, {
+            headers: {
+              Authorization: 'Bearer ' + adminTokenWithInvalidPayload,
+            },
+          });
+        } catch (err) {
+          expect((err as Error).message).toBe(axiosStatusError(401));
+        }
+      });
+
+      test('invalid token data (incorrect group)', async () => {
+        expect.assertions(1);
+        try {
+          await axios.get('/groups/my/users/' + requiredUserId, {
+            headers: {
+              Authorization: 'Bearer ' + tokenWithIncorrectGroup,
+            },
+          });
+        } catch (err) {
+          expect((err as Error).message).toBe(axiosStatusError(404));
+        }
+      });
+
+      test('invalid token data (incorrect user)', async () => {
+        expect.assertions(1);
+        try {
+          await axios.get('/groups/my/users/' + requiredUserId, {
+            headers: {
+              Authorization: 'Bearer ' + tokenWithIncorrectUser,
+            },
+          });
+        } catch (err) {
+          expect((err as Error).message).toBe(axiosStatusError(404));
+        }
+      });
+
+      test('invalid token data (no data)', async () => {
+        expect.assertions(1);
+        try {
+          await axios.get('/groups/my/users/' + requiredUserId, {
+            headers: {
+              Authorization: 'Bearer ' + tokenWithoutData,
+            },
+          });
+        } catch (err) {
+          expect((err as Error).message).toBe(axiosStatusError(404));
+        }
+      });
+
+      test('invalid user id (no such user)', async () => {
+        expect.assertions(1);
+        try {
+          await axios.get(
+            '/groups/my/users/00000000-0000-0000-0000-000000000000',
+            {
+              headers: {
+                Authorization: 'Bearer ' + userToken,
+              },
+            }
+          );
+        } catch (err) {
+          expect((err as Error).message).toBe(axiosStatusError(404));
+        }
+      });
+
+      test('invalid user id (not a uuid)', async () => {
+        expect.assertions(1);
+        try {
+          await axios.get('/groups/my/users/aaaaaaaaaa', {
+            headers: {
+              Authorization: 'Bearer ' + userToken,
+            },
+          });
+        } catch (err) {
+          expect((err as Error).message).toBe(axiosStatusError(400));
+        }
+      });
+    });
+
+    describe('delete user', () => {
+      test('no token', async () => {
+        expect.assertions(1);
+        try {
+          await axios.delete('/groups/my/users/' + requiredUserId);
+        } catch (err) {
+          expect((err as Error).message).toBe(axiosStatusError(401));
+        }
+      });
+
+      test('invalid token sign', async () => {
+        expect.assertions(1);
+        try {
+          await axios.delete('/groups/my/users/' + requiredUserId, {
+            headers: {
+              Authorization: 'Bearer ' + adminTokenWithInvalidSign,
+            },
+          });
+        } catch (err) {
+          expect((err as Error).message).toBe(axiosStatusError(401));
+        }
+      });
+
+      test('invalid token header', async () => {
+        expect.assertions(1);
+        try {
+          await axios.delete('/groups/my/users/' + requiredUserId, {
+            headers: {
+              Authorization: 'Bearer ' + adminTokenWithInvalidHeader,
+            },
+          });
+        } catch (err) {
+          expect((err as Error).message).toBe(axiosStatusError(401));
+        }
+      });
+
+      test('invalid token payload', async () => {
+        expect.assertions(1);
+        try {
+          await axios.delete('/groups/my/users/' + requiredUserId, {
+            headers: {
+              Authorization: 'Bearer ' + adminTokenWithInvalidPayload,
+            },
+          });
+        } catch (err) {
+          expect((err as Error).message).toBe(axiosStatusError(401));
+        }
+      });
+
+      test('invalid token data (incorrect group)', async () => {
+        expect.assertions(1);
+        try {
+          await axios.delete('/groups/my/users/' + requiredUserId, {
+            headers: {
+              Authorization: 'Bearer ' + tokenWithIncorrectGroup,
+            },
+          });
+        } catch (err) {
+          expect((err as Error).message).toBe(axiosStatusError(404));
+        }
+      });
+
+      test('invalid token data (incorrect user)', async () => {
+        expect.assertions(1);
+        try {
+          await axios.delete('/groups/my/users/' + requiredUserId, {
+            headers: {
+              Authorization: 'Bearer ' + tokenWithIncorrectUser,
+            },
+          });
+        } catch (err) {
+          expect((err as Error).message).toBe(axiosStatusError(404));
+        }
+      });
+
+      test('invalid token data (no data)', async () => {
+        expect.assertions(1);
+        try {
+          await axios.delete('/groups/my/users/' + requiredUserId, {
+            headers: {
+              Authorization: 'Bearer ' + tokenWithoutData,
+            },
+          });
+        } catch (err) {
+          expect((err as Error).message).toBe(axiosStatusError(404));
+        }
+      });
+
+      test('invalid user id (no such user)', async () => {
+        expect.assertions(1);
+        try {
+          await axios.delete(
+            '/groups/my/users/00000000-0000-0000-0000-000000000000',
+            {
+              headers: {
+                Authorization: 'Bearer ' + userToken,
+              },
+            }
+          );
+        } catch (err) {
+          expect((err as Error).message).toBe(axiosStatusError(404));
+        }
+      });
+
+      test('invalid user id (not a uuid)', async () => {
+        expect.assertions(1);
+        try {
+          await axios.delete('/groups/my/users/aaaaaaaaaa', {
+            headers: {
+              Authorization: 'Bearer ' + userToken,
+            },
+          });
+        } catch (err) {
+          expect((err as Error).message).toBe(axiosStatusError(400));
+        }
+      });
+
+      test('try to delete without permission', async () => {
+        expect.assertions(1);
+        try {
+          await axios.delete('/groups/my/users/' + requiredUserId, {
             headers: {
               Authorization: 'Bearer ' + userToken,
             },

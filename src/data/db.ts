@@ -43,9 +43,7 @@ export class GroupsCollection {
     await this.collection.insertOne(group);
   }
 
-  getGroupByInviteCode(
-    inviteCode: string
-  ): Promise<GroupDocument | null> {
+  getGroupByInviteCode(inviteCode: string): Promise<GroupDocument | null> {
     return this.collection.findOne({ inviteCode: inviteCode });
   }
 
@@ -62,6 +60,44 @@ export class GroupsCollection {
 
   async deleteGroupById(id: string): Promise<void> {
     await this.collection.deleteOne({ id: id });
+  }
+
+  async getUserFromGroup(
+    groupId: string,
+    userId: string
+  ): Promise<IUserModel | null> {
+    // A bit complicated aggregation,
+    // gets specific user from users list from group
+    return (await this.collection
+      .aggregate([
+        // select only the desired group
+        { $match: { id: groupId } },
+        // leave only the desired user
+        {
+          $addFields: {
+            users: {
+              $filter: {
+                input: '$users',
+                cond: {
+                  $eq: ['$$this.id', userId],
+                },
+              },
+            },
+          },
+        },
+        // replace list with the only user on that user object
+        { $unwind: '$users' },
+        // replace root object with the desired user
+        { $replaceWith: '$users' },
+      ])
+      .next()) as unknown as IUserModel | null;
+  }
+
+  async deleteUserFromGroup(groupId: string, userId: string): Promise<void> {
+    await this.collection.updateOne(
+      { id: groupId },
+      { $pull: { users: { id: userId } } }
+    );
   }
 }
 

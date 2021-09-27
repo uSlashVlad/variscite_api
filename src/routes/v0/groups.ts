@@ -19,6 +19,8 @@ export class GroupsAPI implements IRoute {
   }
 
   routeReg: FastifyPluginCallback = (instance, opts, next) => {
+    // I can't use class' methods because methods can't understand
+    // "this" keyword when they called
     instance.post('/', opts, async (req, res) => {
       await this.createNewGroup(req, res);
     });
@@ -33,6 +35,12 @@ export class GroupsAPI implements IRoute {
     });
     instance.get('/my/users', opts, async (req, res) => {
       await this.getCurrentGroupUsers(req, res);
+    });
+    instance.get('/my/users/:userId', async (req, res) => {
+      await this.getUserInfo(req, res);
+    });
+    instance.delete('/my/users/:userId', async (req, res) => {
+      await this.deleteUser(req, res);
     });
 
     next();
@@ -93,12 +101,12 @@ export class GroupsAPI implements IRoute {
     await req
       .jwtVerify()
       .catch((reason) => {
-        throw new AuthError('Invalid token: ' + reason);
+        throw new AuthError(reason);
       })
       .then(async (decoded) => {
         const jwt = decoded as IUserJWT;
         const group = await this.groupsCollection.getGroupById(jwt.g);
-        if (group && checkUserInGroup(group.users || [], jwt.u)) {
+        if (group && checkUserInGroup(group.users ?? [], jwt.u)) {
           delete group._id;
           delete group.passcode;
           delete group.users;
@@ -114,12 +122,12 @@ export class GroupsAPI implements IRoute {
     await req
       .jwtVerify()
       .catch((reason) => {
-        throw new AuthError('Invalid token: ' + reason);
+        throw new AuthError(reason);
       })
       .then(async (decoded) => {
         const jwt = decoded as IUserJWT;
         const group = await this.groupsCollection.getGroupById(jwt.g);
-        if (group && checkUserInGroup(group.users || [], jwt.u)) {
+        if (group && checkUserInGroup(group.users ?? [], jwt.u)) {
           res.send(group.users);
         } else {
           throw new NotFoundError('No such group found or user was kicked');
@@ -132,14 +140,67 @@ export class GroupsAPI implements IRoute {
     await req
       .jwtVerify()
       .catch((reason) => {
-        throw new AuthError('Invalid token: ' + reason);
+        throw new AuthError(reason);
       })
       .then(async (decoded) => {
         const jwt = decoded as IUserJWT;
         const group = await this.groupsCollection.getGroupById(jwt.g);
-        if (group && checkUserInGroup(group.users || [], jwt.u)) {
+        if (group && checkUserInGroup(group.users ?? [], jwt.u)) {
           if (jwt.a) {
             await this.groupsCollection.deleteGroupById(jwt.g);
+            res.send({});
+          } else {
+            throw new NoPermissionsError('Insufficient permissions');
+          }
+        } else {
+          throw new NotFoundError('No such group found or user was kicked');
+        }
+      });
+  }
+
+  /// GET /groups/my/users/:userId
+  private async getUserInfo(req: FastifyRequest, res: FastifyReply) {
+    await req
+      .jwtVerify()
+      .catch((reason) => {
+        throw new AuthError(reason);
+      })
+      .then(async (decoded) => {
+        const jwt = decoded as IUserJWT;
+        const params = req.params as { userId: string };
+        const user = await this.groupsCollection.getUserFromGroup(
+          jwt.g,
+          params.userId
+        );
+        if (user) {
+          res.send(user);
+        } else {
+          throw new NotFoundError('No such group found or user was kicked');
+        }
+      });
+  }
+
+  /// DELETE /groups/my/users/:userId
+  private async deleteUser(req: FastifyRequest, res: FastifyReply) {
+    await req
+      .jwtVerify()
+      .catch((reason) => {
+        throw new AuthError(reason);
+      })
+      .then(async (decoded) => {
+        const jwt = decoded as IUserJWT;
+        const params = req.params as { userId: string };
+        const group = await this.groupsCollection.getGroupById(jwt.g);
+        if (
+          group &&
+          checkUserInGroup(group.users ?? [], jwt.u) &&
+          checkUserInGroup(group.users ?? [], params.userId)
+        ) {
+          if (jwt.a) {
+            await this.groupsCollection.deleteUserFromGroup(
+              jwt.g,
+              params.userId
+            );
             res.send({});
           } else {
             throw new NoPermissionsError('Insufficient permissions');

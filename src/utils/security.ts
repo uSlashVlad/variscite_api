@@ -1,6 +1,6 @@
 import { createHash } from 'crypto';
 import { IUserModel } from 'data/schemas/group';
-// import { IGroupModel } from 'data/schemas/group';
+import { GroupsCollection } from 'data/db';
 
 export function sha256(content: string) {
   return createHash('sha256').update(content).digest('hex');
@@ -12,4 +12,15 @@ export function checkUserInGroup(users: IUserModel[], userId: string): boolean {
     if (users[i].id == userId) return true;
   }
   return false;
+}
+
+export async function isUserAdmin(
+  collection: GroupsCollection,
+  groupId: string,
+  userId: string
+): Promise<boolean> {
+  const user = await collection.getUserFromGroup(groupId, userId);
+  if (user) {
+    return user.isAdmin;
+  } else return false;
 }

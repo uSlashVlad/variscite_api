@@ -4,7 +4,7 @@ import { IRoute } from '../../data/schemas/route';
 import { IGroupInput, IGroupModel, IUserJWT } from '../../data/schemas/group';
 import { Database, GroupsCollection } from '../../data/db';
 import { genUUID, genCode } from '../../utils/random';
-import { checkUserInGroup, sha256 } from '../../utils/security';
+import { checkUserInGroup, isUserAdmin, sha256 } from '../../utils/security';
 import {
   AuthError,
   NoPermissionsError,
@@ -12,10 +12,10 @@ import {
 } from '../../utils/errors';
 
 export class GroupsAPI implements IRoute {
-  private groupsCollection: GroupsCollection;
+  private collection: GroupsCollection;
 
   constructor(database: Database) {
-    this.groupsCollection = database.getGroupsCollection();
+    this.collection = database.getGroupsCollection();
   }
 
   routeReg: FastifyPluginCallback = (instance, opts, next) => {
@@ -52,7 +52,7 @@ export class GroupsAPI implements IRoute {
     const inviteCode = genCode();
     const data = req.body as IGroupInput;
 
-    await this.groupsCollection.insertGroup({
+    await this.collection.insertGroup({
       id: groupId,
       name: data.name,
       passcode: sha256(data.passcode!),
@@ -67,7 +67,7 @@ export class GroupsAPI implements IRoute {
   private async loginViaInviteCode(req: FastifyRequest, res: FastifyReply) {
     const params = req.params as { inviteCode: string };
     const group: IGroupModel | null =
-      await this.groupsCollection.getGroupByInviteCode(params.inviteCode);
+      await this.collection.getGroupByInviteCode(params.inviteCode);
 
     if (group) {
       const data = req.body as IGroupInput;
@@ -83,13 +83,13 @@ export class GroupsAPI implements IRoute {
       }
 
       const userId = genUUID();
-      await this.groupsCollection.insertUserToGroup(group.id, {
+      await this.collection.insertUserToGroup(group.id, {
         id: userId,
         name: data.name,
         isAdmin: isAdmin,
       });
 
-      const token = await res.jwtSign({ g: group.id, u: userId, a: isAdmin });
+      const token = await res.jwtSign({ g: group.id, u: userId });
       res.send({ token: token });
     } else {
       throw new NotFoundError('No such group found');
@@ -105,7 +105,7 @@ export class GroupsAPI implements IRoute {
       })
       .then(async (decoded) => {
         const jwt = decoded as IUserJWT;
-        const group = await this.groupsCollection.getGroupById(jwt.g);
+        const group = await this.collection.getGroupById(jwt.g);
         if (group && checkUserInGroup(group.users ?? [], jwt.u)) {
           delete group._id;
           delete group.passcode;
@@ -126,7 +126,7 @@ export class GroupsAPI implements IRoute {
       })
       .then(async (decoded) => {
         const jwt = decoded as IUserJWT;
-        const group = await this.groupsCollection.getGroupById(jwt.g);
+        const group = await this.collection.getGroupById(jwt.g);
         if (group && checkUserInGroup(group.users ?? [], jwt.u)) {
           res.send(group.users);
         } else {
@@ -144,10 +144,10 @@ export class GroupsAPI implements IRoute {
       })
       .then(async (decoded) => {
         const jwt = decoded as IUserJWT;
-        const group = await this.groupsCollection.getGroupById(jwt.g);
+        const group = await this.collection.getGroupById(jwt.g);
         if (group && checkUserInGroup(group.users ?? [], jwt.u)) {
-          if (jwt.a) {
-            await this.groupsCollection.deleteGroupById(jwt.g);
+          if (await isUserAdmin(this.collection, jwt.g, jwt.u)) {
+            await this.collection.deleteGroupById(jwt.g);
             res.send({});
           } else {
             throw new NoPermissionsError('Insufficient permissions');
@@ -168,7 +168,7 @@ export class GroupsAPI implements IRoute {
       .then(async (decoded) => {
         const jwt = decoded as IUserJWT;
         const params = req.params as { userId: string };
-        const user = await this.groupsCollection.getUserFromGroup(
+        const user = await this.collection.getUserFromGroup(
           jwt.g,
           params.userId
         );
@@ -190,17 +190,14 @@ export class GroupsAPI implements IRoute {
       .then(async (decoded) => {
         const jwt = decoded as IUserJWT;
         const params = req.params as { userId: string };
-        const group = await this.groupsCollection.getGroupById(jwt.g);
+        const group = await this.collection.getGroupById(jwt.g);
         if (
           group &&
           checkUserInGroup(group.users ?? [], jwt.u) &&
           checkUserInGroup(group.users ?? [], params.userId)
         ) {
-          if (jwt.a) {
-            await this.groupsCollection.deleteUserFromGroup(
-              jwt.g,
-              params.userId
-            );
+          if (await isUserAdmin(this.collection, jwt.g, jwt.u)) {
+            await this.collection.deleteUserFromGroup(jwt.g, params.userId);
             res.send({});
           } else {
             throw new NoPermissionsError('Insufficient permissions');

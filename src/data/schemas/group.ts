@@ -20,5 +20,4 @@ export interface IGroupInput {
 export interface IUserJWT {
   g: string;
   u: string;
-  a: boolean;
 }

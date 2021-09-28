@@ -10,10 +10,11 @@ import { generateErrorMessage } from './utils/errors';
 const server = fastify({ logger: true });
 const db = new Database();
 
+server.setErrorHandler(generateErrorMessage);
+
 // Adding OpenAPI input validation  to the pipeline
 inputValidation.init('specs/api-v0.yml', { framework: 'fastify' });
 server.register(inputValidation.validate({}));
-server.setErrorHandler(generateErrorMessage);
 
 // Adding JWT validation to the pipeline
 server.register(fastifyJwt, {

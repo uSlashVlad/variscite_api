@@ -4,12 +4,13 @@ import { IRoute } from '../../data/schemas/route';
 import { IGroupInput, IGroupModel, IUserJWT } from '../../data/schemas/group';
 import { Database, GroupsCollection } from '../../data/db';
 import { genUUID, genCode } from '../../utils/random';
-import { checkUserInGroup, isUserAdmin, sha256 } from '../../utils/security';
 import {
-  AuthError,
-  NoPermissionsError,
-  NotFoundError,
-} from '../../utils/errors';
+  checkUserInGroup,
+  verifyJWT,
+  verifyJWTasAdmin,
+  sha256,
+} from '../../utils/security';
+import { AuthError, NotFoundError } from '../../utils/errors';
 
 export class GroupsAPI implements IRoute {
   private collection: GroupsCollection;
@@ -58,6 +59,7 @@ export class GroupsAPI implements IRoute {
       passcode: sha256(data.passcode!),
       inviteCode: inviteCode,
       users: [],
+      structures: [],
     });
 
     res.send({ inviteCode: inviteCode });
@@ -98,113 +100,65 @@ export class GroupsAPI implements IRoute {
 
   /// GET /groups/my
   private async getCurrentGroupInfo(req: FastifyRequest, res: FastifyReply) {
-    await req
-      .jwtVerify()
-      .catch((reason) => {
-        throw new AuthError(reason);
-      })
-      .then(async (decoded) => {
-        const jwt = decoded as IUserJWT;
-        const group = await this.collection.getGroupById(jwt.g);
-        if (group && checkUserInGroup(group.users ?? [], jwt.u)) {
-          delete group._id;
-          delete group.passcode;
-          delete group.users;
-          res.send(group as IGroupModel);
-        } else {
-          throw new NotFoundError('No such group found or user was kicked');
-        }
-      });
+    await verifyJWT(req, async (jwt) => {
+      const group = await this.collection.getGroupById(jwt.g);
+      if (group && checkUserInGroup(group.users ?? [], jwt.u)) {
+        delete group._id;
+        delete group.passcode;
+        delete group.users;
+        delete group.structures;
+        res.send(group as IGroupModel);
+      } else {
+        throw new NotFoundError('No such group found or user was kicked');
+      }
+    });
   }
 
   /// GET /groups/my/users
   private async getCurrentGroupUsers(req: FastifyRequest, res: FastifyReply) {
-    await req
-      .jwtVerify()
-      .catch((reason) => {
-        throw new AuthError(reason);
-      })
-      .then(async (decoded) => {
-        const jwt = decoded as IUserJWT;
-        const group = await this.collection.getGroupById(jwt.g);
-        if (group && checkUserInGroup(group.users ?? [], jwt.u)) {
-          res.send(group.users);
-        } else {
-          throw new NotFoundError('No such group found or user was kicked');
-        }
-      });
+    await verifyJWT(req, async (jwt) => {
+      const group = await this.collection.getGroupById(jwt.g);
+      if (group && checkUserInGroup(group.users ?? [], jwt.u)) {
+        res.send(group.users);
+      } else {
+        throw new NotFoundError('No such group found or user was kicked');
+      }
+    });
   }
 
   /// DELETE /groups/my
   private async deleteCurrentGroup(req: FastifyRequest, res: FastifyReply) {
-    await req
-      .jwtVerify()
-      .catch((reason) => {
-        throw new AuthError(reason);
-      })
-      .then(async (decoded) => {
-        const jwt = decoded as IUserJWT;
-        const group = await this.collection.getGroupById(jwt.g);
-        if (group && checkUserInGroup(group.users ?? [], jwt.u)) {
-          if (await isUserAdmin(this.collection, jwt.g, jwt.u)) {
-            await this.collection.deleteGroupById(jwt.g);
-            res.send({});
-          } else {
-            throw new NoPermissionsError('Insufficient permissions');
-          }
-        } else {
-          throw new NotFoundError('No such group found or user was kicked');
-        }
-      });
+    await verifyJWTasAdmin(req, this.collection, async (jwt) => {
+      if (await this.collection.deleteGroupById(jwt.g)) {
+        res.send({});
+      } else {
+        throw new NotFoundError('No such group found');
+      }
+    });
   }
 
   /// GET /groups/my/users/:userId
   private async getUserInfo(req: FastifyRequest, res: FastifyReply) {
-    await req
-      .jwtVerify()
-      .catch((reason) => {
-        throw new AuthError(reason);
-      })
-      .then(async (decoded) => {
-        const jwt = decoded as IUserJWT;
-        const params = req.params as { userId: string };
-        const user = await this.collection.getUserFromGroup(
-          jwt.g,
-          params.userId
-        );
-        if (user) {
-          res.send(user);
-        } else {
-          throw new NotFoundError('No such group found or user was kicked');
-        }
-      });
+    await verifyJWT(req, async (jwt) => {
+      const params = req.params as { userId: string };
+      const user = await this.collection.getOneUser(jwt.g, params.userId);
+      if (user) {
+        res.send(user);
+      } else {
+        throw new NotFoundError('No such group found or user was kicked');
+      }
+    });
   }
 
   /// DELETE /groups/my/users/:userId
   private async deleteUser(req: FastifyRequest, res: FastifyReply) {
-    await req
-      .jwtVerify()
-      .catch((reason) => {
-        throw new AuthError(reason);
-      })
-      .then(async (decoded) => {
-        const jwt = decoded as IUserJWT;
-        const params = req.params as { userId: string };
-        const group = await this.collection.getGroupById(jwt.g);
-        if (
-          group &&
-          checkUserInGroup(group.users ?? [], jwt.u) &&
-          checkUserInGroup(group.users ?? [], params.userId)
-        ) {
-          if (await isUserAdmin(this.collection, jwt.g, jwt.u)) {
-            await this.collection.deleteUserFromGroup(jwt.g, params.userId);
-            res.send({});
-          } else {
-            throw new NoPermissionsError('Insufficient permissions');
-          }
-        } else {
-          throw new NotFoundError('No such group found or user was kicked');
-        }
-      });
+    await verifyJWTasAdmin(req, this.collection, async (jwt) => {
+      const params = req.params as { userId: string };
+      if (await this.collection.deleteOneUser(jwt.g, params.userId)) {
+        res.send({});
+      } else {
+        throw new NotFoundError('No such user found');
+      }
+    });
   }
 }

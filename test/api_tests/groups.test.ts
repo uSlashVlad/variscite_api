@@ -375,7 +375,7 @@ describe('/groups', () => {
             },
           });
         } catch (err) {
-          expect((err as Error).message).toBe(axiosStatusError(404));
+          expect((err as Error).message).toBe(axiosStatusError(403));
         }
       });
 
@@ -388,7 +388,7 @@ describe('/groups', () => {
             },
           });
         } catch (err) {
-          expect((err as Error).message).toBe(axiosStatusError(404));
+          expect((err as Error).message).toBe(axiosStatusError(403));
         }
       });
 
@@ -401,7 +401,7 @@ describe('/groups', () => {
             },
           });
         } catch (err) {
-          expect((err as Error).message).toBe(axiosStatusError(404));
+          expect((err as Error).message).toBe(axiosStatusError(403));
         }
       });
 
@@ -597,7 +597,7 @@ describe('/groups', () => {
             },
           });
         } catch (err) {
-          expect((err as Error).message).toBe(axiosStatusError(404));
+          expect((err as Error).message).toBe(axiosStatusError(403));
         }
       });
 
@@ -610,7 +610,7 @@ describe('/groups', () => {
             },
           });
         } catch (err) {
-          expect((err as Error).message).toBe(axiosStatusError(404));
+          expect((err as Error).message).toBe(axiosStatusError(403));
         }
       });
 
@@ -623,7 +623,7 @@ describe('/groups', () => {
             },
           });
         } catch (err) {
-          expect((err as Error).message).toBe(axiosStatusError(404));
+          expect((err as Error).message).toBe(axiosStatusError(403));
         }
       });
 
@@ -639,7 +639,7 @@ describe('/groups', () => {
             }
           );
         } catch (err) {
-          expect((err as Error).message).toBe(axiosStatusError(404));
+          expect((err as Error).message).toBe(axiosStatusError(403));
         }
       });
 

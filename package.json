@@ -6,7 +6,7 @@
     "start": "NODE_PATH=./build node build/index.js",
     "build": "tsc -p .",
     "dev": "nodemon src/index.ts",
-    "test": "jasmine"
+    "test": "npx jest"
   },
   "author": "u/vlad",
   "license": "MIT",

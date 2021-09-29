@@ -3,16 +3,18 @@ import { FastifyPluginCallback, FastifyRequest, FastifyReply } from 'fastify';
 import { IRoute } from 'data/schemas/route';
 import { IGroupInput, IGroupModel, IUserJWT } from 'data/schemas/group';
 import { IGeoStruct } from 'data/schemas/structures';
-import { Database, StructureCollection } from 'data/db';
+import { Database, GroupsCollection, StructureCollection } from 'data/db';
 import { NoPermissionsError, NotFoundError } from '../../utils/errors';
 import { genUUID } from '../../utils/random';
-import { isUserAdmin, verifyJWT } from '../../utils/security';
+import { verifyJWT } from '../../utils/security';
 
 export class StructuresAPI implements IRoute {
   private collection: StructureCollection;
+  private groupCollection: GroupsCollection;
 
   constructor(database: Database) {
     this.collection = database.getStructuresCollection();
+    this.groupCollection = database.getGroupsCollection();
   }
 
   routeReg: FastifyPluginCallback = (instance, opts, next) => {
@@ -37,10 +39,8 @@ export class StructuresAPI implements IRoute {
 
   /// GET /structures
   private async getListOfStructs(req: FastifyRequest, res: FastifyReply) {
-    await verifyJWT(req, async (jwt) => {
-      const group = await this.collection
-        .asGroupCollection()
-        .getGroupById(jwt.g);
+    await verifyJWT(req, this.groupCollection, async (jwt, user) => {
+      const group = await this.groupCollection.getGroupById(jwt.g);
       if (group) {
         res.send(group.structures);
       } else {
@@ -51,7 +51,7 @@ export class StructuresAPI implements IRoute {
 
   /// POST /structures
   private async postNewStruct(req: FastifyRequest, res: FastifyReply) {
-    await verifyJWT(req, async (jwt) => {
+    await verifyJWT(req, this.groupCollection, async (jwt, user) => {
       const struct: IGeoStruct = {
         id: genUUID(),
         user: jwt.u,
@@ -64,7 +64,7 @@ export class StructuresAPI implements IRoute {
 
   /// GET /structures/:structId
   private async getStructInfo(req: FastifyRequest, res: FastifyReply) {
-    await verifyJWT(req, async (jwt) => {
+    await verifyJWT(req, this.groupCollection, async (jwt, user) => {
       const params = req.params as { structId: string };
       const struct = await this.collection.getOneStructure(
         jwt.g,
@@ -80,7 +80,7 @@ export class StructuresAPI implements IRoute {
 
   /// PUT /structures/:structId
   private async editStruct(req: FastifyRequest, res: FastifyReply) {
-    await verifyJWT(req, async (jwt) => {
+    await verifyJWT(req, this.groupCollection, async (jwt, user) => {
       const params = req.params as { structId: string };
       // This checks author of structure, because only author can edit it
       const struct = await this.collection.getOneStructure(
@@ -107,15 +107,13 @@ export class StructuresAPI implements IRoute {
 
   /// DELETE /structures/:structId
   private async deleteStruct(req: FastifyRequest, res: FastifyReply) {
-    await verifyJWT(req, async (jwt) => {
+    await verifyJWT(req, this.groupCollection, async (jwt, user) => {
       const params = req.params as { structId: string };
 
       // This needs to be checked because only admin and structure' creator
       // can delete structure, so I check admin rights and check user' id
       let userHavePermissions = false;
-      if (
-        await isUserAdmin(this.collection.asGroupCollection(), jwt.g, jwt.u)
-      ) {
+      if (user.isAdmin) {
         userHavePermissions = true;
       } else {
         const struct = await this.collection.getOneStructure(

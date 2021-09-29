@@ -16,20 +16,10 @@ export function checkUserInGroup(users: IUserModel[], userId: string): boolean {
   return false;
 }
 
-export async function isUserAdmin(
-  collection: GroupsCollection,
-  groupId: string,
-  userId: string
-): Promise<boolean> {
-  const user = await collection.getOneUser(groupId, userId);
-  if (user) {
-    return user.isAdmin;
-  } else return false;
-}
-
 export async function verifyJWT(
   req: FastifyRequest,
-  callback: (jwt: IUserJWT) => Promise<void>
+  collection: GroupsCollection,
+  callback: (jwt: IUserJWT, user: IUserModel) => Promise<void>
 ) {
   await req
     .jwtVerify()
@@ -37,18 +27,24 @@ export async function verifyJWT(
       throw new AuthError(reason);
     })
     .then(async (decoded) => {
-      await callback(decoded as IUserJWT);
+      const jwt = decoded as IUserJWT;
+      const user = await collection.getOneUser(jwt.g, jwt.u);
+      if (user) {
+        await callback(jwt, user);
+      } else {
+        throw new AuthError('Invalid or outdated token');
+      }
     });
 }
 
 export async function verifyJWTasAdmin(
   req: FastifyRequest,
   collection: GroupsCollection,
-  callback: (jwt: IUserJWT) => Promise<void>
+  callback: (jwt: IUserJWT, user: IUserModel) => Promise<void>
 ) {
-  await verifyJWT(req, async (jwt) => {
-    if (await isUserAdmin(collection, jwt.g, jwt.u)) {
-      await callback(jwt);
+  await verifyJWT(req, collection, async (jwt, user) => {
+    if (user.isAdmin) {
+      await callback(jwt, user);
     } else {
       throw new NoPermissionsError('Insufficient permissions');
     }

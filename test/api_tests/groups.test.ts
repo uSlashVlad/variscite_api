@@ -131,9 +131,7 @@ describe('/groups', () => {
         try {
           await axios.get('/groups/my');
         } catch (err) {
-          expect((err as Error).message).toBe(
-            'Request failed with status code 401'
-          );
+          expect((err as Error).message).toBe(axiosStatusError(401));
         }
       });
 
@@ -146,9 +144,7 @@ describe('/groups', () => {
             },
           });
         } catch (err) {
-          expect((err as Error).message).toBe(
-            'Request failed with status code 401'
-          );
+          expect((err as Error).message).toBe(axiosStatusError(401));
         }
       });
 
@@ -161,9 +157,7 @@ describe('/groups', () => {
             },
           });
         } catch (err) {
-          expect((err as Error).message).toBe(
-            'Request failed with status code 401'
-          );
+          expect((err as Error).message).toBe(axiosStatusError(401));
         }
       });
 
@@ -176,9 +170,7 @@ describe('/groups', () => {
             },
           });
         } catch (err) {
-          expect((err as Error).message).toBe(
-            'Request failed with status code 401'
-          );
+          expect((err as Error).message).toBe(axiosStatusError(401));
         }
       });
 
@@ -191,9 +183,7 @@ describe('/groups', () => {
             },
           });
         } catch (err) {
-          expect((err as Error).message).toBe(
-            'Request failed with status code 404'
-          );
+          expect((err as Error).message).toBe(axiosStatusError(401));
         }
       });
 
@@ -206,9 +196,7 @@ describe('/groups', () => {
             },
           });
         } catch (err) {
-          expect((err as Error).message).toBe(
-            'Request failed with status code 404'
-          );
+          expect((err as Error).message).toBe(axiosStatusError(401));
         }
       });
 
@@ -221,9 +209,7 @@ describe('/groups', () => {
             },
           });
         } catch (err) {
-          expect((err as Error).message).toBe(
-            'Request failed with status code 404'
-          );
+          expect((err as Error).message).toBe(axiosStatusError(401));
         }
       });
     });
@@ -286,7 +272,7 @@ describe('/groups', () => {
             },
           });
         } catch (err) {
-          expect((err as Error).message).toBe(axiosStatusError(404));
+          expect((err as Error).message).toBe(axiosStatusError(401));
         }
       });
 
@@ -299,7 +285,7 @@ describe('/groups', () => {
             },
           });
         } catch (err) {
-          expect((err as Error).message).toBe(axiosStatusError(404));
+          expect((err as Error).message).toBe(axiosStatusError(401));
         }
       });
 
@@ -312,7 +298,7 @@ describe('/groups', () => {
             },
           });
         } catch (err) {
-          expect((err as Error).message).toBe(axiosStatusError(404));
+          expect((err as Error).message).toBe(axiosStatusError(401));
         }
       });
     });
@@ -375,7 +361,7 @@ describe('/groups', () => {
             },
           });
         } catch (err) {
-          expect((err as Error).message).toBe(axiosStatusError(403));
+          expect((err as Error).message).toBe(axiosStatusError(401));
         }
       });
 
@@ -388,7 +374,7 @@ describe('/groups', () => {
             },
           });
         } catch (err) {
-          expect((err as Error).message).toBe(axiosStatusError(403));
+          expect((err as Error).message).toBe(axiosStatusError(401));
         }
       });
 
@@ -401,7 +387,7 @@ describe('/groups', () => {
             },
           });
         } catch (err) {
-          expect((err as Error).message).toBe(axiosStatusError(403));
+          expect((err as Error).message).toBe(axiosStatusError(401));
         }
       });
 
@@ -479,7 +465,7 @@ describe('/groups', () => {
             },
           });
         } catch (err) {
-          expect((err as Error).message).toBe(axiosStatusError(404));
+          expect((err as Error).message).toBe(axiosStatusError(401));
         }
       });
 
@@ -492,7 +478,7 @@ describe('/groups', () => {
             },
           });
         } catch (err) {
-          expect((err as Error).message).toBe(axiosStatusError(404));
+          expect((err as Error).message).toBe(axiosStatusError(401));
         }
       });
 
@@ -505,7 +491,7 @@ describe('/groups', () => {
             },
           });
         } catch (err) {
-          expect((err as Error).message).toBe(axiosStatusError(404));
+          expect((err as Error).message).toBe(axiosStatusError(401));
         }
       });
 
@@ -597,7 +583,7 @@ describe('/groups', () => {
             },
           });
         } catch (err) {
-          expect((err as Error).message).toBe(axiosStatusError(403));
+          expect((err as Error).message).toBe(axiosStatusError(401));
         }
       });
 
@@ -610,7 +596,7 @@ describe('/groups', () => {
             },
           });
         } catch (err) {
-          expect((err as Error).message).toBe(axiosStatusError(403));
+          expect((err as Error).message).toBe(axiosStatusError(401));
         }
       });
 
@@ -623,7 +609,7 @@ describe('/groups', () => {
             },
           });
         } catch (err) {
-          expect((err as Error).message).toBe(axiosStatusError(403));
+          expect((err as Error).message).toBe(axiosStatusError(401));
         }
       });
 

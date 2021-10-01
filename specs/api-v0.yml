@@ -30,7 +30,7 @@ paths:
               $ref: '#/components/schemas/GroupCreationInput'
       responses:
         '200':
-          description: If group creation is successfull, it returns group and user id and JWT
+          description: Returns group and user id and JWT
           content:
             application/json:
               schema:
@@ -61,7 +61,7 @@ paths:
               $ref: '#/components/schemas/GroupAuthInput'
       responses:
         '200':
-          description: If invite code is correct, it returns group and user id and JWT
+          description: Returns token for group auth
           content:
             application/json:
               schema:
@@ -87,7 +87,7 @@ paths:
       summary: Get current group info
       responses:
         '200':
-          description: If auth is successfull, it returns group data
+          description: Returns your group data
           content:
             application/json:
               schema:
@@ -100,7 +100,7 @@ paths:
       summary: Delete current group
       responses:
         '200':
-          description: If auth is successfull, it returns empty object
+          description: Deletes group and returns empty object
           content:
             application/json:
               schema:
@@ -141,7 +141,7 @@ paths:
       summary: Get user info
       responses:
         '200':
-          description: If auth is successfull, it returns user data
+          description: Returns information about the desired user data
           content:
             application/json:
               schema:
@@ -382,7 +382,7 @@ components:
         struct:
           $ref: '#/components/schemas/FeatureCollection'
     # GeoJSON spec taken from: https://app.swaggerhub.com/apis/OlivierMartineau/GeoJSON/1.0.0
-    'GeoJsonObject':
+    GeoJsonObject:
       description: >
         GeoJSon object
 
@@ -428,7 +428,7 @@ components:
         - type
       discriminator:
         propertyName: type
-    'Geometry':
+    Geometry:
       description: >
         Abstract type for all GeoJSon object except Feature and
         FeatureCollection
@@ -452,7 +452,7 @@ components:
             - type
           discriminator:
             propertyName: type
-    'GeometryElement':
+    GeometryElement:
       description: >
         Abstract type for all GeoJSon 'Geometry' object the type of which is not
         'GeometryCollection'
@@ -475,7 +475,7 @@ components:
             - type
           discriminator:
             propertyName: type
-    'Feature':
+    Feature:
       description: GeoJSon 'Feature' object
       externalDocs:
         url: 'https://tools.ietf.org/html/rfc7946#section-3.2'
@@ -493,7 +493,7 @@ components:
             'properties':
               type: object
               nullable: true
-    'FeatureCollection':
+    FeatureCollection:
       description: GeoJSon 'FeatureCollection' object
       externalDocs:
         url: 'https://tools.ietf.org/html/rfc7946#section-3.3'
@@ -507,7 +507,7 @@ components:
               type: array
               items:
                 $ref: '#/components/schemas/Feature'
-    'Position':
+    Position:
       description: >
         GeoJSon fundamental geometry construct.
 
@@ -531,7 +531,7 @@ components:
       maxItems: 3
       items:
         type: number
-    'LineStringCoordinates':
+    LineStringCoordinates:
       description: >
         GeoJSon fundamental geometry construct, array of two or more positions.
       externalDocs:
@@ -540,7 +540,7 @@ components:
       items:
         $ref: '#/components/schemas/Position'
       minItems: 2
-    'LinearRing':
+    LinearRing:
       description: >
         A linear ring is a closed LineString with four or more positions.
 
@@ -559,7 +559,7 @@ components:
       items:
         $ref: '#/components/schemas/Position'
       minItems: 4
-    'Point':
+    Point:
       description: GeoJSon geometry
       externalDocs:
         url: 'https://tools.ietf.org/html/rfc7946#section-3.1.2'
@@ -575,7 +575,7 @@ components:
               enum: [Point]
             'coordinates':
               $ref: '#/components/schemas/Position'
-    'MultiPoint':
+    MultiPoint:
       description: GeoJSon geometry
       externalDocs:
         url: 'https://tools.ietf.org/html/rfc7946#section-3.1.3'
@@ -589,7 +589,7 @@ components:
               type: array
               items:
                 $ref: '#/components/schemas/Position'
-    'LineString':
+    LineString:
       description: GeoJSon geometry
       externalDocs:
         url: 'https://tools.ietf.org/html/rfc7946#section-3.1.4'
@@ -601,7 +601,7 @@ components:
           properties:
             'coordinates':
               $ref: '#/components/schemas/LineStringCoordinates'
-    'MultiLineString':
+    MultiLineString:
       description: GeoJSon geometry
       externalDocs:
         url: 'https://tools.ietf.org/html/rfc7946#section-3.1.5'
@@ -615,7 +615,7 @@ components:
               type: array
               items:
                 $ref: '#/components/schemas/LineStringCoordinates'
-    'Polygon':
+    Polygon:
       description: GeoJSon geometry
       externalDocs:
         url: 'https://tools.ietf.org/html/rfc7946#section-3.1.6'
@@ -629,7 +629,7 @@ components:
               type: array
               items:
                 $ref: '#/components/schemas/LinearRing'
-    'MultiPolygon':
+    MultiPolygon:
       description: GeoJSon geometry
       externalDocs:
         url: 'https://tools.ietf.org/html/rfc7946#section-3.1.7'
@@ -645,7 +645,7 @@ components:
                 type: array
                 items:
                   $ref: '#/components/schemas/LinearRing'
-    'GeometryCollection':
+    GeometryCollection:
       type: object
       description: >
         GeoJSon geometry collection

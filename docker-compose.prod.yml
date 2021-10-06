@@ -4,4 +4,4 @@ services:
   ts-node-docker:
     build:
       target: production
-    command: node build/index.js
+    command: npm run start

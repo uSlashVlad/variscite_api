@@ -46,7 +46,7 @@ describe('/groups', () => {
             passcode: '123',
           });
         } catch (err) {
-          expect((err as Error).message).toBe(axiosStatusError(404));
+          expect((err as Error).message).toBe(axiosStatusError(400));
         }
       });
 
@@ -58,7 +58,7 @@ describe('/groups', () => {
             passcode: '123',
           });
         } catch (err) {
-          expect((err as Error).message).toBe(axiosStatusError(404));
+          expect((err as Error).message).toBe(axiosStatusError(400));
         }
       });
 
@@ -492,6 +492,38 @@ describe('/groups', () => {
           });
         } catch (err) {
           expect((err as Error).message).toBe(axiosStatusError(401));
+        }
+      });
+
+      test('invalid user id (short uuid)', async () => {
+        expect.assertions(1);
+        try {
+          await axios.get(
+            '/groups/my/users/00000000-0000-0000-0000-0000000000',
+            {
+              headers: {
+                Authorization: 'Bearer ' + userToken,
+              },
+            }
+          );
+        } catch (err) {
+          expect((err as Error).message).toBe(axiosStatusError(400));
+        }
+      });
+
+      test('invalid user id (short uuid)', async () => {
+        expect.assertions(1);
+        try {
+          await axios.get(
+            '/groups/my/users/00000000-0000-0000-0000-00000000000000000',
+            {
+              headers: {
+                Authorization: 'Bearer ' + userToken,
+              },
+            }
+          );
+        } catch (err) {
+          expect((err as Error).message).toBe(axiosStatusError(400));
         }
       });
 

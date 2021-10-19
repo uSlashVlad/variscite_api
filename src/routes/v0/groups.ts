@@ -61,7 +61,7 @@ export class GroupsAPI implements IRoute {
       structures: [],
     });
 
-    res.send({ inviteCode: inviteCode });
+    res.send({ id: groupId, inviteCode: inviteCode });
   }
 
   /// POST /groups/:inviteCode
@@ -88,10 +88,17 @@ export class GroupsAPI implements IRoute {
         id: userId,
         name: data.name,
         isAdmin: isAdmin,
+        location: {
+          isHidden: true,
+          position: {
+            lat: 0,
+            lon: 0,
+          },
+        },
       });
 
       const token = await res.jwtSign({ g: group.id, u: userId });
-      res.send({ token: token });
+      res.send({ id: userId, token: token });
     } else {
       throw new NotFoundError('No such group found');
     }

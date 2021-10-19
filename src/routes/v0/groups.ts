@@ -1,15 +1,11 @@
 import { FastifyPluginCallback, FastifyRequest, FastifyReply } from 'fastify';
 
 import { IRoute } from '../../data/schemas/route';
-import { IGroupInput, IGroupModel, IUserJWT } from '../../data/schemas/group';
-import { Database, GroupsCollection } from '../../data/db';
+import { IGroupInput, IGroupModel } from '../../data/schemas/group';
+import { Database } from '../../data/db/db';
+import { GroupsCollection } from '../../data/db/groups_collection';
 import { genUUID, genCode } from '../../utils/random';
-import {
-  checkUserInGroup,
-  verifyJWT,
-  verifyJWTasAdmin,
-  sha256,
-} from '../../utils/security';
+import { verifyJWT, verifyJWTasAdmin, sha256 } from '../../utils/security';
 import { AuthError, NotFoundError } from '../../utils/errors';
 
 export class GroupsAPI implements IRoute {
@@ -42,6 +38,9 @@ export class GroupsAPI implements IRoute {
     });
     instance.delete('/my/users/:userId', async (req, res) => {
       await this.deleteUser(req, res);
+    });
+    instance.post('/groups/leave', opts, async (req, res) => {
+      await this.leaveGroup(req, res);
     });
 
     next();
@@ -150,6 +149,17 @@ export class GroupsAPI implements IRoute {
     await verifyJWTasAdmin(req, this.collection, async (jwt, user) => {
       const params = req.params as { userId: string };
       if (await this.collection.deleteOneUser(jwt.g, params.userId)) {
+        res.send({});
+      } else {
+        throw new NotFoundError('No such user found');
+      }
+    });
+  }
+
+  /// POST /groups/leave
+  private async leaveGroup(req: FastifyRequest, res: FastifyReply) {
+    await verifyJWT(req, this.collection, async (jwt, user) => {
+      if (await this.collection.deleteOneUser(jwt.g, jwt.u)) {
         res.send({});
       } else {
         throw new NotFoundError('No such user found');

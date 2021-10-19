@@ -1,19 +1,11 @@
 import { createHash } from 'crypto';
 import { FastifyRequest } from 'fastify';
 import { IUserModel, IUserJWT } from 'data/schemas/group';
-import { GroupsCollection } from 'data/db';
+import { GroupsCollection } from 'data/db/groups_collection';
 import { AuthError, NoPermissionsError } from './errors';
 
 export function sha256(content: string) {
   return createHash('sha256').update(content).digest('hex');
-}
-
-/// Goes through all user list and returns true, if specified user was found
-export function checkUserInGroup(users: IUserModel[], userId: string): boolean {
-  for (let i = 0; i < users.length; i++) {
-    if (users[i].id == userId) return true;
-  }
-  return false;
 }
 
 export async function verifyJWT(

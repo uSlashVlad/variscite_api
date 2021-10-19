@@ -1,4 +1,5 @@
-import { IGeoStruct } from './structures';
+import { IGeolocation } from './location';
+import { IGeoStruct } from './structure';
 
 export interface IGroupModel {
   id: string;
@@ -13,6 +14,7 @@ export interface IUserModel {
   id: string;
   name: string;
   isAdmin: boolean;
+  location?: IGeolocation;
 }
 
 export interface IGroupInput {

@@ -2,7 +2,7 @@ openapi: 3.0.0
 info:
   title: Variscite API
   description: RESTful API of Variscite, online geoservice
-  version: 0.3.0
+  version: 0.3.1
   license:
     name: MIT
     url: https://opensource.org/licenses/MIT
@@ -344,11 +344,11 @@ paths:
             example: checkWeather,hidden
       responses:
         '200':
-          description: Returns an empty object
+          description: Returns object with all fields of structure
           content:
             application/json:
               schema:
-                default: {}
+                $ref: '#/components/schemas/StructFields'
         '400':
           $ref: '#/components/responses/Error400ValidationError'
         '401':
@@ -387,7 +387,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserGeolocationOutput'
+                $ref: '#/components/schemas/GeolocationPosition'
         '401':
           $ref: '#/components/responses/Error401AuthError'
         '404':
@@ -402,23 +402,14 @@ paths:
         content:
           application/json:
             schema:
-              required:
-                - latitude
-                - longitude
-              properties:
-                latitude:
-                  type: number
-                  default: 0
-                longitude:
-                  type: number
-                  default: 0
+              $ref: '#/components/schemas/GeolocationPosition'
       responses:
         '200':
           description: Returns geolocation object
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserGeolocationOutput'
+                $ref: '#/components/schemas/GeolocationPosition'
         '400':
           $ref: '#/components/responses/Error400ValidationError'
         '401':
@@ -485,7 +476,7 @@ components:
     UserId:
       in: path
       name: userId
-      description: User' UUID that creates during user login
+      description: User' UUID that was created during user login
       required: true
       schema:
         $ref: '#/components/schemas/UUID'
@@ -539,13 +530,19 @@ components:
       properties:
         user:
           $ref: '#/components/schemas/UUID'
+        position:
+          $ref: '#/components/schemas/GeolocationPosition'
+    GeolocationPosition:
+      required:
+        - latitude
+        - longitude
+      properties:
         latitude:
           type: number
           default: 0
         longitude:
           type: number
           default: 0
-    
     GroupCreationInput:
       properties:
         name:

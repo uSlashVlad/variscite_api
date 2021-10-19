@@ -4,12 +4,14 @@ import { IRoute } from '../../data/schemas/route';
 import { StatusAPI } from './status';
 import { GroupsAPI } from './groups';
 import { StructuresAPI } from './structures';
-import { Database } from '../../data/db';
+import { LocationAPI } from './location';
+import { Database } from '../../data/db/db';
 
 export class APIv0 implements IRoute {
   private statusAPI;
   private groupsAPI;
   private structAPI;
+  private locationAPI;
 
   private db: Database;
 
@@ -19,6 +21,7 @@ export class APIv0 implements IRoute {
     this.statusAPI = new StatusAPI();
     this.groupsAPI = new GroupsAPI(this.db);
     this.structAPI = new StructuresAPI(this.db);
+    this.locationAPI = new LocationAPI(this.db);
   }
 
   routeReg: FastifyPluginCallback = (instance, opts, next) => {
@@ -27,6 +30,10 @@ export class APIv0 implements IRoute {
     instance.register(this.structAPI.routeReg, {
       ...opts,
       prefix: 'structures',
+    });
+    instance.register(this.locationAPI.routeReg, {
+      ...opts,
+      prefix: 'location',
     });
 
     next();

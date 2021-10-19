@@ -43,7 +43,7 @@ export function generateErrorMessage(
   }
 }
 
-export class AuthError extends Error { }
+export class AuthError extends Error {}
 
 export class NoPermissionsError extends Error {}
 

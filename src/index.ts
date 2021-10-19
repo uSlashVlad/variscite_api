@@ -3,7 +3,7 @@ import fastifyJwt from 'fastify-jwt';
 import * as inputValidation from 'openapi-validator-middleware';
 
 import { APIv0 } from './routes/v0/root';
-import { Database } from './data/db';
+import { Database } from './data/db/db';
 import { privateKey, publicKey } from './data/keys';
 import { generateErrorMessage } from './utils/errors';
 

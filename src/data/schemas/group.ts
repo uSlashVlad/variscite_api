@@ -1,4 +1,4 @@
-import { IGeolocation } from './location';
+import { IGeolocation, IGeoPosition } from './location';
 import { IGeoStruct } from './structure';
 
 export interface IGroupModel {

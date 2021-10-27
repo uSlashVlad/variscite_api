@@ -2,7 +2,7 @@ openapi: 3.0.0
 info:
   title: Variscite API
   description: RESTful API of Variscite, online geoservice
-  version: 0.3.2
+  version: 0.3.3
   license:
     name: MIT
     url: https://opensource.org/licenses/MIT
@@ -184,8 +184,23 @@ paths:
           $ref: '#/components/responses/Error404NotFoundGroupOrUser'
         '500':
           $ref: '#/components/responses/Error500InternalServerError'
-  /groups/leave:
-    post:
+  /groups/my/users/me:
+    get:
+      summary: Get current user info
+      responses:
+        '200':
+          description: Returns information about current user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserInfo'
+        '400':
+          $ref: '#/components/responses/Error400ValidationError'
+        '401':
+          $ref: '#/components/responses/Error401AuthError'
+        '500':
+          $ref: '#/components/responses/Error500InternalServerError'
+    delete:
       summary: Leave current group
       responses:
         '200':
@@ -524,7 +539,7 @@ components:
           type: string
           example: O92UAMEsSXsSs1X
       required:
-        - group
+        - id
         - name
         - inviteCode
     UserInfo:
@@ -539,20 +554,29 @@ components:
         isAdmin:
           type: boolean
           example: true
-    UserGeolocationOutput:
+        location:
+          properties:
+            isHidden:
+              type: boolean
+              example: true
+            position:
+              $ref: '#/components/schemas/GeolocationPosition'
       required:
-        - user
-        - latitude
-        - longitude
+        - id
+        - name
+        - isAdmin
+        - location
+
+    UserGeolocationOutput:
       properties:
         user:
           $ref: '#/components/schemas/UUID'
         position:
           $ref: '#/components/schemas/GeolocationPosition'
-    GeolocationPosition:
       required:
-        - latitude
-        - longitude
+        - user
+        - position
+    GeolocationPosition:
       properties:
         latitude:
           type: number
@@ -560,6 +584,9 @@ components:
         longitude:
           type: number
           default: 0
+      required:
+        - latitude
+        - longitude
 
     GeoStruct:
       description: Custom GeoJSON object
@@ -582,6 +609,7 @@ components:
         Property of structure that contains object with any fields user
         want to add with any type of data
       example: { checkWeather: true, hidden: false }
+
     # GeoJSON spec taken from: https://app.swaggerhub.com/apis/OlivierMartineau/GeoJSON/1.0.0
     GeoJsonObject:
       description: >

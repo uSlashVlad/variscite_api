@@ -37,9 +37,12 @@ export class GroupsAPI implements IRoute {
       await this.getUserInfo(req, res);
     });
     instance.delete('/my/users/:userId', async (req, res) => {
-      await this.deleteUser(req, res);
+      await this.kickUser(req, res);
     });
-    instance.post('/groups/leave', opts, async (req, res) => {
+    instance.get('/my/users/me', opts, async (req, res) => {
+      await this.getCurrentUserInfo(req, res);
+    });
+    instance.delete('/my/users/me', opts, async (req, res) => {
       await this.leaveGroup(req, res);
     });
 
@@ -152,7 +155,7 @@ export class GroupsAPI implements IRoute {
   }
 
   /// DELETE /groups/my/users/:userId
-  private async deleteUser(req: FastifyRequest, res: FastifyReply) {
+  private async kickUser(req: FastifyRequest, res: FastifyReply) {
     await verifyJWTasAdmin(req, this.collection, async (jwt, user) => {
       const params = req.params as { userId: string };
       if (await this.collection.deleteOneUser(jwt.g, params.userId)) {
@@ -163,7 +166,18 @@ export class GroupsAPI implements IRoute {
     });
   }
 
-  /// POST /groups/leave
+  /// GET /groups/my/users/me
+  private async getCurrentUserInfo(req: FastifyRequest, res: FastifyReply) {
+    await verifyJWT(req, this.collection, async (jwt, user) => {
+      const requestedUser = await this.collection.getOneUser(
+        jwt.g,
+        jwt.u
+      );
+      res.send(requestedUser);
+    });
+  }
+
+  /// DELETE /groups/my/users/me
   private async leaveGroup(req: FastifyRequest, res: FastifyReply) {
     await verifyJWT(req, this.collection, async (jwt, user) => {
       if (await this.collection.deleteOneUser(jwt.g, jwt.u)) {

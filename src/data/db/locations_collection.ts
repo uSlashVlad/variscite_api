@@ -15,7 +15,9 @@ export class LocationsCollection {
   }
 
   async getAllUsersLocation(
-    groupId: string
+    groupId: string,
+    userId?: string | null,
+    hideUser: boolean = false
   ): Promise<IUserGeolocationOutput[] | null> {
     const group = await this.collection.findOne({ id: groupId });
     if (group) {
@@ -23,7 +25,7 @@ export class LocationsCollection {
 
       let result: IUserGeolocationOutput[] = [];
       users.forEach((user) => {
-        if (!user.location!.isHidden) {
+        if (!user.location!.isHidden && (!hideUser || user.id != userId)) {
           result.push({ user: user.id, position: user.location!.position });
         }
       });

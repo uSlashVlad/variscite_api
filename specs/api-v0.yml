@@ -2,7 +2,7 @@ openapi: 3.0.0
 info:
   title: Variscite API
   description: RESTful API of Variscite, online geoservice
-  version: 0.3.3
+  version: 0.3.4
   license:
     name: MIT
     url: https://opensource.org/licenses/MIT
@@ -395,6 +395,18 @@ paths:
   /location/all:
     get:
       summary: Get geolocation of all users in group
+      parameters:
+        - name: exclude_user
+          in: query
+          description: >
+            If this option is enabled, you won't receive current user location.
+            Can be usefull when you want separate location of current user and
+            all other locations
+          required: false
+          schema:
+            type: boolean
+            default: false
+            example: true
       responses:
         '200':
           description: >

@@ -42,7 +42,8 @@ export class LocationAPI implements IRoute {
   /// GET /location/all
   private async getAllLocations(req: FastifyRequest, res: FastifyReply) {
     await verifyJWT(req, this.groupCollection, async (jwt, user) => {
-      const location = (await this.collection.getAllUsersLocation(jwt.g))!;
+      const query = req.query as { exclude_user: boolean };
+      const location = (await this.collection.getAllUsersLocation(jwt.g, user.id, query.exclude_user))!;
       res.send(location);
     });
   }

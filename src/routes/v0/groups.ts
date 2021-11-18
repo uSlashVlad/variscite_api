@@ -77,8 +77,7 @@ export class GroupsAPI implements IRoute {
       const data = req.body as IGroupInput;
       // Verifying admin passcode, if it passed
       let isAdmin = false;
-      console.log(data, data.passcode);
-      if (data.passcode) {
+      if (data.passcode && data.passcode != '') {
         if (sha256(data.passcode) == group.passcode) {
           isAdmin = true;
         } else {

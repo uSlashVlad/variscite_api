@@ -66,7 +66,7 @@ export class LocationAPI implements IRoute {
 
   /// PUT /location/my
   private async updateUserLocation(req: FastifyRequest, res: FastifyReply) {
-    verifyJWT(req, this.groupCollection, async (jwt, user) => {
+    await verifyJWT(req, this.groupCollection, async (jwt, user) => {
       const body = req.body as IGeoPositionInput;
       const position = convertPosition(body);
       await this.collection.updateUserLocation(jwt.g, jwt.u, position);
@@ -76,7 +76,7 @@ export class LocationAPI implements IRoute {
 
   /// DELETE /location/my
   private async eraseUserLocation(req: FastifyRequest, res: FastifyReply) {
-    verifyJWT(req, this.groupCollection, async (jwt, user) => {
+    await verifyJWT(req, this.groupCollection, async (jwt, user) => {
       await this.collection.eraseUserLocation(jwt.g, jwt.u);
       res.send({});
     });

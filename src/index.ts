@@ -18,13 +18,7 @@ server.register(inputValidation.validate({}));
 
 // Adding JWT validation to the pipeline
 server.register(fastifyJwt, {
-  secret: {
-    private: privateKey,
-    public: publicKey,
-  },
-  sign: {
-    algorithm: 'RS256',
-  },
+  secret: process.env.JWT_SECRET as string,
 });
 
 // Main async function of app

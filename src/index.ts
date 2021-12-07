@@ -4,7 +4,6 @@ import * as inputValidation from 'openapi-validator-middleware';
 
 import { APIv0 } from './routes/v0/root';
 import { Database } from './data/db/db';
-import { privateKey, publicKey } from './data/keys';
 import { generateErrorMessage } from './utils/errors';
 
 const server = fastify({ logger: true });

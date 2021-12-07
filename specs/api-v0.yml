@@ -390,7 +390,7 @@ paths:
           $ref: '#/components/responses/Error404NotFoundStructure'
         '500':
           $ref: '#/components/responses/Error500InternalServerError'
-  
+
   /location/all:
     get:
       summary: Get geolocation of all users in group
@@ -439,8 +439,24 @@ paths:
           $ref: '#/components/responses/Error500InternalServerError'
 
   /location/my:
+    get:
+      summary: Get current user' geolocation
+      responses:
+        '200':
+          description: Returns geolocation of specific user if it isn't hidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GeolocationPosition'
+        '401':
+          $ref: '#/components/responses/Error401AuthError'
+        '404':
+          $ref: '#/components/responses/Error404NotFoundGroupOrUser'
+        '500':
+          $ref: '#/components/responses/Error500InternalServerError'
+
     put:
-      summary: Update current user location
+      summary: Update current user' geolocation
       requestBody:
         content:
           application/json:
@@ -478,7 +494,6 @@ paths:
           $ref: '#/components/responses/Error403NoPermissionsError'
         '500':
           $ref: '#/components/responses/Error500InternalServerError'
-
 
   /status:
     get:

@@ -43,7 +43,11 @@ export class LocationAPI implements IRoute {
   private async getAllLocations(req: FastifyRequest, res: FastifyReply) {
     await verifyJWT(req, this.groupCollection, async (jwt, user) => {
       const query = req.query as { exclude_user: boolean };
-      const location = (await this.collection.getAllUsersLocation(jwt.g, user.id, query.exclude_user))!;
+      const location = (await this.collection.getAllUsersLocation(
+        jwt.g,
+        user.id,
+        query.exclude_user
+      ))!;
       res.send(location);
     });
   }
@@ -56,6 +60,18 @@ export class LocationAPI implements IRoute {
         jwt.g,
         params.userId
       );
+      if (location) {
+        res.send(location);
+      } else {
+        throw new NotFoundError('No such user found or location is hidden');
+      }
+    });
+  }
+
+  /// GET /location/my
+  private async getCurrentUserLocation(req: FastifyRequest, res: FastifyReply) {
+    await verifyJWT(req, this.groupCollection, async (jwt, user) => {
+      const location = await this.collection.getUserLocation(jwt.g, user.id);
       if (location) {
         res.send(location);
       } else {

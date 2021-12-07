@@ -1,6 +1,6 @@
 {
   "name": "variscite_api",
-  "version": "0.3.5",
+  "version": "0.3.6",
   "description": "HTTP API for managing geostructures, users locations and other data",
   "scripts": {
     "start": "node build/index.js",

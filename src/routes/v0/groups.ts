@@ -168,10 +168,7 @@ export class GroupsAPI implements IRoute {
   /// GET /groups/my/users/me
   private async getCurrentUserInfo(req: FastifyRequest, res: FastifyReply) {
     await verifyJWT(req, this.collection, async (jwt, user) => {
-      const requestedUser = await this.collection.getOneUser(
-        jwt.g,
-        jwt.u
-      );
+      const requestedUser = await this.collection.getOneUser(jwt.g, jwt.u);
       res.send(requestedUser);
     });
   }
